@@ -41,3 +41,17 @@ date: 2026-07-23
 **에피소드**: `/code-review` 스킬은 `disable-model-invocation`으로 에이전트가 직접 호출할 수 없어서, execute-plan Step 4의 독립 리뷰를 직접 diff를 읽는 방식으로 수행했다. 그 과정에서 이 문제와 함께 두 가지 Important 이슈(ChargerPopup의 `role="dialog"`가 포커스 관리 없이 오용됨, SearchBar가 로딩 중 Enter 키 재제출을 막지 않음)를 발견해 그 두 개는 바로 고쳤다(commit 871d1d5). 이 항목만 spec 범위 밖이라 판단해 기각했다.
 
 **증거**: `services/chargerStations.ts`, `hooks/useStationSearch.ts` 코드 리딩. 재현 테스트는 작성하지 않았다(기각한 항목이라 hypothesis로 남김) — 검증하려면 `findNearbyStations`의 fetch가 network error를 throw하도록 mock한 뒤 `/api/stations` 응답과 화면 메시지를 확인하면 된다.
+
+---
+triggers: [Browser MCP, 미리보기 브라우저, 카카오맵, next/script, "Failed to fetch", onerror, 외부 스크립트, third-party script, 지도 SDK]
+status: verified
+scope: this-tooling (Claude Code Browser MCP 미리보기 브라우저)
+date: 2026-07-23
+---
+## 세션 내장 미리보기 브라우저(Browser MCP)는 원격 서드파티 `<script>` 실행을 차단한다 — 지도 SDK 등 시각 확인은 사용자의 실제 브라우저에서 해야 한다
+
+**지시문**: 카카오맵·구글맵처럼 외부 도메인에서 `<script>` 태그로 로드하는 SDK가 들어간 feature는, Browser MCP(이 세션의 내장 미리보기 브라우저)로 실제 렌더링을 확인하려 하지 마라. 대신: (1) 백엔드/API 호출 체인은 Browser MCP의 `read_network_requests`로 충분히 검증 가능하다(실제로 우리 API 라우트와 외부 API 왕복은 정상 동작함), (2) 시각적 확인(지도 렌더링, 마커, SDK 콜백)은 사용자에게 로컬에서 `bun dev` 실행 후 일반 브라우저로 직접 열어보라고 안내하라.
+
+**에피소드**: ev-charger-finder 최종 체크포인트에서 카카오맵 JS SDK가 `window.kakao`를 정의하지 않아 지도가 렌더되지 않았다. 처음엔 카카오 앱 설정(제품 비활성화) 문제로 착각했으나, 그건 사용자가 이미 고쳤었다. 재확인을 위해 페이지 컨텍스트에서 `fetch(kakaoScriptUrl)`을 실행하니 `"Failed to fetch"`가 났고, `document.createElement('script')`로 같은 URL을 직접 로드해도 `onerror`가 발생했다. 반면 같은 URL을 `curl`이나 `node`로 직접 요청하면 200 OK와 정상 JS 본문이 돌아왔다. 즉 서버·키·설정은 모두 정상이고, Browser MCP 자체가 원격 스크립트 실행을 막고 있었다. `/api/geocode`, `/api/stations`는 실제 카카오/공공데이터 API를 정상 호출했으므로(read_network_requests로 확인), 백엔드 체인 검증에는 지장이 없었다.
+
+**증거**: 브라우저 콘솔에서 `fetch('https://dapi.kakao.com/...')` → `"Failed to fetch"`; 수동 `<script>` 태그 로드 → `onerror` 콜백 실행. 동일 URL의 `curl -sv` 응답은 `HTTP/1.1 200 OK` + 정상 JS 본문. `read_network_requests`로 확인한 `/api/geocode`(200, 실제 좌표), `/api/stations`(200, 반경 5km 이내 실제 충전소 86곳) 왕복은 정상.

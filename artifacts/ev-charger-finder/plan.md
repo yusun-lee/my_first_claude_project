@@ -214,11 +214,17 @@
 
 ---
 
-### 최종 Checkpoint
-- [ ] 모든 테스트 통과: `bun run test`
-- [ ] 빌드 성공: `bun run build`
-- [ ] 커버리지 검사 통과: `scripts/spec-coverage.sh ev-charger-finder --tests`
-- [ ] `.env.local`에 실제 API 키가 채워진 뒤, spec.md의 **End-to-end 검증** 절차를 Browser MCP로 실행하고, 통과한 판정 기준의 체크박스를 spec.md에서 켠다
+### 최종 Checkpoint — 부분 통과 (지도 시각 확인은 도구 제약으로 보류)
+- [x] 모든 테스트 통과: `bun run test` (9 files, 28 tests)
+- [x] 빌드 성공: `bun run build`
+- [x] 커버리지 검사 통과: `scripts/spec-coverage.sh ev-charger-finder --tests`
+- [x] `.env.local`에 실제 API 키 채움. 카카오맵 제품이 처음엔 Kakao Developers 콘솔에서 비활성화 상태라 `NotAuthorizedError`가 났었고, 사용자가 활성화한 뒤 재확인함
+- [x] Browser MCP로 실제 백엔드 흐름 확인 완료 (mock 아님, 실제 카카오/공공데이터 API 호출):
+  - S1 지오코딩+충전소 조회: "서울 강남구 테헤란로 133" 검색 → `/api/geocode` 200(실제 좌표) → `/api/stations` 200(반경 5km 이내 실제 충전소 86곳)
+  - S2: "asdkfjqwer1234" 검색 → `/api/geocode` 404 → "주소를 찾을 수 없습니다" 표시
+  - S3: "강남" 검색 → 후보 선택 없이 "서울 강남구"로 자동 해석되어 정상 조회
+  - S4: "강원특별자치도 인제군 서화면 서화리" 검색 → "주변 5km에 충전소가 없습니다" 표시
+- [ ] **보류**: S1-1/S1-2/S1-4(지도 중심 이동, 마커 렌더링, 팝업)의 실제 시각적 확인 — 이 세션의 내장 미리보기 브라우저가 타사 원격 스크립트(카카오맵 JS SDK) 실행을 차단함(수동으로 만든 `<script>` 태그도 `onerror` 발생, 동일 URL을 `curl`/`fetch`로 직접 받으면 정상 응답). 앱·카카오 설정 문제가 아니라 도구 환경 제약으로 판단. 사용자가 로컬에서 `bun dev` 실행 후 일반 브라우저로 열어 직접 눈으로 확인하는 것을 권장
 
 ## 미결정 항목
 
