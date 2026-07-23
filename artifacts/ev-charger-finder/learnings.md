@@ -27,3 +27,17 @@ date: 2026-07-23
 **에피소드**: Task 1에서 `components/search-bar.tsx`가 `/api/geocode`를 직접 fetch하고 자체 에러 상태를 표시하도록 만들었다(그 시점엔 `hooks/`가 없었으므로 plan.md도 이렇게 기술했음). Task 3에서 `hooks/useStationSearch.ts`가 "주소 검색 → 지오코딩 → 충전소 조회"를 오케스트레이션하게 되자, SearchBar가 계속 자체 지오코딩을 하면 같은 API를 두 번 호출하는 구조가 됐다. `SearchBar`를 `onSubmit(query)`/`error`/`isLoading` prop만 받는 presentational 컴포넌트로 리팩터링하고, `search-bar.test.tsx`도 fetch mock 없이 prop 기반으로 다시 썼다.
 
 **증거**: `components/search-bar.tsx`, `components/search-bar.test.tsx`, `hooks/useStationSearch.ts` — 리팩터링 후 전체 테스트 20개 통과, commit 4b784f5.
+
+---
+triggers: [독립 코드 리뷰, code-review, findNearbyStations, useStationSearch, 에러 스와핑, "no stations", 반경 내 결과 없음]
+status: hypothesis
+scope: this-repo (ev-charger-finder feature)
+date: 2026-07-23
+---
+## Task 1~6 구현 후 독립 리뷰에서, 백엔드 실패를 "결과 없음"으로 뭉개는 부분을 발견했으나 spec 범위 밖으로 기각했다
+
+**지시문**: `services/chargerStations.ts`(`!response.ok` → `[]` 반환)와 `hooks/useStationSearch.ts`(`!stationsResponse.ok` → `stations: []`)는 공공데이터포털 API가 진짜로 실패했을 때도 "반경 내 충전소 없음"(S4) 화면과 똑같이 보여준다. 사용자는 서비스 장애와 "그냥 근처에 충전소가 없음"을 구분할 수 없다. spec.md에 이 시나리오(충전소 조회 자체의 실패)가 정의되어 있지 않아 지금은 고치지 않았다 — 나중에 이 feature를 확장하거나 관련 버그 리포트가 들어오면, 먼저 spec.md에 시나리오를 추가할지부터 사용자와 확인하라. 코드만 고치고 spec을 안 바꾸면 판정 기준의 원본이 흔들린다.
+
+**에피소드**: `/code-review` 스킬은 `disable-model-invocation`으로 에이전트가 직접 호출할 수 없어서, execute-plan Step 4의 독립 리뷰를 직접 diff를 읽는 방식으로 수행했다. 그 과정에서 이 문제와 함께 두 가지 Important 이슈(ChargerPopup의 `role="dialog"`가 포커스 관리 없이 오용됨, SearchBar가 로딩 중 Enter 키 재제출을 막지 않음)를 발견해 그 두 개는 바로 고쳤다(commit 871d1d5). 이 항목만 spec 범위 밖이라 판단해 기각했다.
+
+**증거**: `services/chargerStations.ts`, `hooks/useStationSearch.ts` 코드 리딩. 재현 테스트는 작성하지 않았다(기각한 항목이라 hypothesis로 남김) — 검증하려면 `findNearbyStations`의 fetch가 network error를 throw하도록 mock한 뒤 `/api/stations` 응답과 화면 메시지를 확인하면 된다.
