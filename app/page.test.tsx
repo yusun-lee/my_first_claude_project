@@ -33,7 +33,7 @@ function stubKakaoSdk(
         }
         getProjection() {
           return {
-            pointFromCoords: (latLng: FakeLatLng) => ({
+            containerPointFromCoords: (latLng: FakeLatLng) => ({
               x: latLng.lng,
               y: latLng.lat,
             }),

@@ -43,7 +43,7 @@ export function ChargerMap({
       window.kakao.maps.event.addListener(marker, "click", () => {
         const point = mapRef.current
           .getProjection()
-          .pointFromCoords(position)
+          .containerPointFromCoords(position)
         setSelected({ station, x: point.x, y: point.y })
       })
       return marker
