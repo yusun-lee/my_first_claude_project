@@ -1,5 +1,11 @@
-import { ComponentExample } from "@/components/component-example";
+"use client"
+
+import { SearchBar } from "@/components/search-bar"
 
 export default function Page() {
-return <ComponentExample />;
+  return (
+    <main className="mx-auto max-w-3xl p-6">
+      <SearchBar onLocationFound={() => {}} />
+    </main>
+  )
 }
