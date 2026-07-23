@@ -1,48 +1,14 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { SearchBar } from "./search-bar"
 
 describe("SearchBar", () => {
-  beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn())
-  })
-
-  it("[S2-1] shows an error message when the address cannot be resolved", async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: false,
-      json: async () => ({ error: "주소를 찾을 수 없습니다" }),
-    } as Response)
-
+  it("calls onSubmit with the entered query", async () => {
+    const onSubmit = vi.fn()
     const user = userEvent.setup()
-    render(<SearchBar onLocationFound={vi.fn()} />)
-
-    await user.type(
-      screen.getByLabelText("주소나 지역명"),
-      "asdkfjqwer1234"
-    )
-    await user.click(screen.getByRole("button", { name: "검색" }))
-
-    expect(
-      await screen.findByText("주소를 찾을 수 없습니다")
-    ).toBeInTheDocument()
-  })
-
-  it("calls onLocationFound with the resolved location on a successful search", async () => {
-    const location = {
-      lat: 37.5,
-      lng: 127.0555,
-      addressName: "서울 강남구 테헤란로 133",
-    }
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: async () => location,
-    } as Response)
-
-    const onLocationFound = vi.fn()
-    const user = userEvent.setup()
-    render(<SearchBar onLocationFound={onLocationFound} />)
+    render(<SearchBar onSubmit={onSubmit} />)
 
     await user.type(
       screen.getByLabelText("주소나 지역명"),
@@ -50,8 +16,24 @@ describe("SearchBar", () => {
     )
     await user.click(screen.getByRole("button", { name: "검색" }))
 
-    await waitFor(() =>
-      expect(onLocationFound).toHaveBeenCalledWith(location)
+    expect(onSubmit).toHaveBeenCalledWith("서울시 강남구 테헤란로")
+  })
+
+  it("[S2-1] shows the error message when the error prop is set", () => {
+    render(
+      <SearchBar onSubmit={vi.fn()} error="주소를 찾을 수 없습니다" />
     )
+
+    expect(screen.getByText("주소를 찾을 수 없습니다")).toBeInTheDocument()
+  })
+
+  it("does not call onSubmit for a blank query", async () => {
+    const onSubmit = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar onSubmit={onSubmit} />)
+
+    await user.click(screen.getByRole("button", { name: "검색" }))
+
+    expect(onSubmit).not.toHaveBeenCalled()
   })
 })

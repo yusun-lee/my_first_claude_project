@@ -6,37 +6,20 @@ import { AlertCircleIcon, SearchIcon } from "lucide-react"
 import { Alert, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { Location } from "@/types/location"
 
 type SearchBarProps = {
-  onLocationFound: (location: Location) => void
+  onSubmit: (query: string) => void
+  error?: string | null
+  isLoading?: boolean
 }
 
-export function SearchBar({ onLocationFound }: SearchBarProps) {
+export function SearchBar({ onSubmit, error, isLoading }: SearchBarProps) {
   const [query, setQuery] = React.useState("")
-  const [error, setError] = React.useState<string | null>(null)
-  const [isLoading, setIsLoading] = React.useState(false)
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!query.trim()) return
-
-    setIsLoading(true)
-    setError(null)
-
-    const response = await fetch(
-      `/api/geocode?query=${encodeURIComponent(query)}`
-    )
-    const body = await response.json()
-
-    setIsLoading(false)
-
-    if (!response.ok) {
-      setError(body.error ?? "주소를 찾을 수 없습니다")
-      return
-    }
-
-    onLocationFound(body as Location)
+    onSubmit(query)
   }
 
   return (

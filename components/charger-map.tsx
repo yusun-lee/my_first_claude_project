@@ -3,6 +3,8 @@
 import * as React from "react"
 import Script from "next/script"
 
+import type { Station } from "@/types/station"
+
 declare global {
   interface Window {
     kakao: any
@@ -13,11 +15,27 @@ const SEOUL_CITY_HALL = { lat: 37.5663, lng: 126.9779 }
 
 type ChargerMapProps = {
   center?: { lat: number; lng: number }
+  stations?: Station[]
 }
 
-export function ChargerMap({ center = SEOUL_CITY_HALL }: ChargerMapProps) {
+export function ChargerMap({
+  center = SEOUL_CITY_HALL,
+  stations = [],
+}: ChargerMapProps) {
   const containerRef = React.useRef<HTMLDivElement>(null)
   const mapRef = React.useRef<any>(null)
+  const markersRef = React.useRef<any[]>([])
+
+  function renderMarkers(stationsToRender: Station[]) {
+    markersRef.current.forEach((marker) => marker.setMap(null))
+    markersRef.current = stationsToRender.map((station) => {
+      const marker = new window.kakao.maps.Marker({
+        position: new window.kakao.maps.LatLng(station.lat, station.lng),
+      })
+      marker.setMap(mapRef.current)
+      return marker
+    })
+  }
 
   function initializeMap() {
     window.kakao.maps.load(() => {
@@ -26,6 +44,7 @@ export function ChargerMap({ center = SEOUL_CITY_HALL }: ChargerMapProps) {
         center: new window.kakao.maps.LatLng(center.lat, center.lng),
         level: 5,
       })
+      renderMarkers(stations)
     })
   }
 
@@ -34,7 +53,15 @@ export function ChargerMap({ center = SEOUL_CITY_HALL }: ChargerMapProps) {
     mapRef.current.setCenter(
       new window.kakao.maps.LatLng(center.lat, center.lng)
     )
-  }, [center])
+    // Re-run only when the searched center changes, not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center.lat, center.lng])
+
+  React.useEffect(() => {
+    if (!mapRef.current) return
+    renderMarkers(stations)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stations])
 
   return (
     <>
