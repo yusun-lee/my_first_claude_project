@@ -4,6 +4,7 @@ import { InfoIcon } from "lucide-react"
 
 import { ChargerMap } from "@/components/charger-map"
 import { SearchBar } from "@/components/search-bar"
+import { StationTable } from "@/components/station-table"
 import { Alert, AlertTitle } from "@/components/ui/alert"
 import { useStationSearch } from "@/hooks/useStationSearch"
 
@@ -21,6 +22,7 @@ export default function Page() {
         </Alert>
       )}
       <ChargerMap center={center ?? undefined} stations={stations} />
+      {stations.length > 0 && <StationTable stations={stations} />}
     </main>
   )
 }
