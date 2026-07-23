@@ -36,4 +36,19 @@ describe("SearchBar", () => {
 
     expect(onSubmit).not.toHaveBeenCalled()
   })
+
+  it("does not call onSubmit again while a search is already loading", async () => {
+    const onSubmit = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar onSubmit={onSubmit} isLoading />)
+
+    // The button is disabled, but Enter still submits the form -- verify
+    // the handler itself also guards against this, not just the button.
+    await user.type(
+      screen.getByLabelText("주소나 지역명"),
+      "서울시 강남구 테헤란로{Enter}"
+    )
+
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
 })

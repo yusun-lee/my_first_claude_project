@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { XIcon } from "lucide-react"
 
 import type { Station } from "@/types/station"
@@ -10,9 +11,17 @@ type ChargerPopupProps = {
 }
 
 export function ChargerPopup({ station, onClose }: ChargerPopupProps) {
+  React.useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose()
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [onClose])
+
   return (
     <div
-      role="dialog"
+      role="group"
       aria-label={station.name}
       className="w-56 rounded border bg-background p-2 text-sm shadow"
     >

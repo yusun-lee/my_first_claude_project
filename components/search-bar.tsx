@@ -18,7 +18,7 @@ export function SearchBar({ onSubmit, error, isLoading }: SearchBarProps) {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!query.trim()) return
+    if (!query.trim() || isLoading) return
     onSubmit(query)
   }
 

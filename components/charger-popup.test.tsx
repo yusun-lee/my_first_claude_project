@@ -29,4 +29,14 @@ describe("ChargerPopup", () => {
 
     expect(onClose).toHaveBeenCalled()
   })
+
+  it("calls onClose when Escape is pressed", async () => {
+    const onClose = vi.fn()
+    const user = userEvent.setup()
+    render(<ChargerPopup station={STATION} onClose={onClose} />)
+
+    await user.keyboard("{Escape}")
+
+    expect(onClose).toHaveBeenCalled()
+  })
 })
