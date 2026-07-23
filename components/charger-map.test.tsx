@@ -11,7 +11,11 @@ class FakeLatLng {
 }
 
 type FakeMap = { center: FakeLatLng; setCenter: (latLng: FakeLatLng) => void }
-type FakeMarker = { position: FakeLatLng; map: unknown }
+type FakeMarker = {
+  position: FakeLatLng
+  map: unknown
+  handlers: Record<string, () => void>
+}
 
 function stubKakaoSdk(mapInstances: FakeMap[], markerInstances: FakeMarker[]) {
   window.kakao = {
@@ -31,6 +35,7 @@ function stubKakaoSdk(mapInstances: FakeMap[], markerInstances: FakeMarker[]) {
       Marker: class {
         position: FakeLatLng
         map: unknown = null
+        handlers: Record<string, () => void> = {}
         constructor(options: { position: FakeLatLng }) {
           this.position = options.position
           markerInstances.push(this)
@@ -38,6 +43,15 @@ function stubKakaoSdk(mapInstances: FakeMap[], markerInstances: FakeMarker[]) {
         setMap(map: unknown) {
           this.map = map
         }
+      },
+      event: {
+        addListener: (
+          target: FakeMarker,
+          event: string,
+          handler: () => void
+        ) => {
+          target.handlers[event] = handler
+        },
       },
     },
   }
@@ -118,5 +132,30 @@ describe("ChargerMap", () => {
       const activeMarkers = markers.filter((marker) => marker.map !== null)
       expect(activeMarkers).toHaveLength(3)
     })
+  })
+
+  it("[S1-4] shows a popup with the station's name and address when its marker is clicked", async () => {
+    vi.stubEnv("NEXT_PUBLIC_KAKAO_JS_KEY", uniqueJsKey())
+    const markers: FakeMarker[] = []
+    stubKakaoSdk([], markers)
+
+    const stations = [
+      {
+        id: "1",
+        name: "테헤란로 충전소",
+        address: "서울 강남구 테헤란로 133",
+        lat: 37.1,
+        lng: 127.2,
+      },
+    ]
+
+    render(<ChargerMap stations={stations} />)
+    triggerSdkLoad()
+
+    await waitFor(() => expect(markers).toHaveLength(1))
+    markers[0].handlers.click()
+
+    expect(await screen.findByText("테헤란로 충전소")).toBeInTheDocument()
+    expect(screen.getByText("서울 강남구 테헤란로 133")).toBeInTheDocument()
   })
 })
