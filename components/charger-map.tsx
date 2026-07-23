@@ -19,6 +19,12 @@ type ChargerMapProps = {
   stations?: Station[]
 }
 
+type SelectedMarker = {
+  station: Station
+  x: number
+  y: number
+}
+
 export function ChargerMap({
   center = SEOUL_CITY_HALL,
   stations = [],
@@ -26,19 +32,19 @@ export function ChargerMap({
   const containerRef = React.useRef<HTMLDivElement>(null)
   const mapRef = React.useRef<any>(null)
   const markersRef = React.useRef<any[]>([])
-  const [selectedStation, setSelectedStation] = React.useState<Station | null>(
-    null
-  )
+  const [selected, setSelected] = React.useState<SelectedMarker | null>(null)
 
   function renderMarkers(stationsToRender: Station[]) {
     markersRef.current.forEach((marker) => marker.setMap(null))
     markersRef.current = stationsToRender.map((station) => {
-      const marker = new window.kakao.maps.Marker({
-        position: new window.kakao.maps.LatLng(station.lat, station.lng),
-      })
+      const position = new window.kakao.maps.LatLng(station.lat, station.lng)
+      const marker = new window.kakao.maps.Marker({ position })
       marker.setMap(mapRef.current)
       window.kakao.maps.event.addListener(marker, "click", () => {
-        setSelectedStation(station)
+        const point = mapRef.current
+          .getProjection()
+          .pointFromCoords(position)
+        setSelected({ station, x: point.x, y: point.y })
       })
       return marker
     })
@@ -60,13 +66,14 @@ export function ChargerMap({
     mapRef.current.setCenter(
       new window.kakao.maps.LatLng(center.lat, center.lng)
     )
+    setSelected(null)
     // Re-run only when the searched center changes, not on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center.lat, center.lng])
 
   React.useEffect(() => {
     if (!mapRef.current) return
-    setSelectedStation(null)
+    setSelected(null)
     renderMarkers(stations)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stations])
@@ -83,11 +90,14 @@ export function ChargerMap({
         data-testid="charger-map"
         className="h-[420px] w-full rounded border"
       />
-      {selectedStation && (
-        <div className="absolute bottom-4 left-4">
+      {selected && (
+        <div
+          className="absolute -translate-x-1/2 -translate-y-[calc(100%+12px)]"
+          style={{ left: selected.x, top: selected.y }}
+        >
           <ChargerPopup
-            station={selectedStation}
-            onClose={() => setSelectedStation(null)}
+            station={selected.station}
+            onClose={() => setSelected(null)}
           />
         </div>
       )}

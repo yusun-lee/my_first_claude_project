@@ -31,6 +31,14 @@ function stubKakaoSdk(
         setCenter(latLng: FakeLatLng) {
           this.center = latLng
         }
+        getProjection() {
+          return {
+            pointFromCoords: (latLng: FakeLatLng) => ({
+              x: latLng.lng,
+              y: latLng.lat,
+            }),
+          }
+        }
       },
       Marker: class {
         map: unknown = null
