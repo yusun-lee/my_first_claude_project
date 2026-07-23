@@ -14,6 +14,7 @@ export default function Page() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-6">
+      <h1 className="text-2xl font-bold">EV 전기차 충전소 찾기</h1>
       <SearchBar onSubmit={search} error={error} isLoading={isLoading} />
       {showEmptyRadiusNotice && (
         <Alert>
