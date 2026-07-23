@@ -92,7 +92,7 @@ export function ChargerMap({
       />
       {selected && (
         <div
-          className="absolute -translate-x-1/2 -translate-y-[calc(100%+12px)]"
+          className="absolute z-10 -translate-x-1/2 -translate-y-[calc(100%+12px)]"
           style={{ left: selected.x, top: selected.y }}
         >
           <ChargerPopup
