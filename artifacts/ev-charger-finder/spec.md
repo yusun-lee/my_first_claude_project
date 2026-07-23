@@ -27,14 +27,14 @@
   - [x] S1-1 지도의 중심이 검색된 위치로 이동한다 (`components/charger-map.test.tsx`)
   - [x] S1-2 검색된 위치 기준 반경 5km 이내에 있는 충전소들이 지도 위에 마커로 표시된다 (`components/charger-map.test.tsx`, `services/chargerStations.test.ts`)
   - ~~S1-3~~ (삭제: 사용하는 공공데이터셋에 충전기 타입 필드가 없어 S1-4로 대체)
-  - [ ] S1-4 마커를 클릭하면 지도 위 팝업에 충전소 이름, 주소가 표시된다
+  - [x] S1-4 마커를 클릭하면 지도 위 팝업에 충전소 이름, 주소가 표시된다 (`components/charger-popup.test.tsx`, `components/charger-map.test.tsx`)
 
 ### S2. 존재하지 않는 주소 검색
 - **Given**: 검색창에 텍스트가 입력되어 있다
 - **When**: 사용자가 시스템이 위치로 인식할 수 없는 문자열로 검색을 실행한다
 - **Then**
   - [x] S2-1 "주소를 찾을 수 없습니다"(제안 기본값) 에러 메시지가 표시된다 (`components/search-bar.test.tsx`, commit d4a9075)
-  - [ ] S2-2 지도와 마커는 검색 이전 상태 그대로 유지된다
+  - [x] S2-2 지도와 마커는 검색 이전 상태 그대로 유지된다 (`app/page.test.tsx`)
 
 ### S3. 여러 후보로 매칭되는 지역명 검색
 - **Given**: 검색창에 여러 지역과 매칭될 수 있는 지역명(예: "강남")이 입력되어 있다

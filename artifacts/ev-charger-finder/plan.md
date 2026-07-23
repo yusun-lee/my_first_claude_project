@@ -158,7 +158,7 @@
 
 ---
 
-### Task 4: 마커 클릭 → 팝업에 충전소 정보 표시 + 재검색 실패 시 상태 유지
+### Task 4: 마커 클릭 → 팝업에 충전소 정보 표시 + 재검색 실패 시 상태 유지 — ✅ 완료
 
 - **담당 판정 기준**: S1-4, S2-2
 - **크기**: S (2 파일)
@@ -177,11 +177,11 @@
 
 ---
 
-### Checkpoint: Task 3~4 이후
-- [ ] 모든 테스트 통과: `bun run test`
-- [ ] 빌드 성공: `bun run build`
-- [ ] 커버리지 검사 통과: `scripts/spec-coverage.sh ev-charger-finder --tests`
-- [ ] 주소 검색 → 마커 표시 → 마커 클릭 → 팝업 표시까지 end-to-end로 동작 (S1 전체 해피패스)
+### Checkpoint: Task 3~4 이후 — ✅ 통과 (카카오 키 발급 전 범위 내)
+- [x] 모든 테스트 통과: `bun run test` (9 files, 24 tests)
+- [x] 빌드 성공: `bun run build`
+- [x] 커버리지 검사: `scripts/spec-coverage.sh ev-charger-finder --tests`는 Task 5~6 담당 ID(S4, S4-1, S4-2, S5, INV-1)만 미인용 — 예상된 상태
+- [x] `/api/stations`는 실제 공공데이터포털 API로 라이브 확인 (서울시청 좌표 기준 5km 이내 실제 충전소 94곳 반환). 지오코딩·지도·팝업을 포함한 전체 S1 해피패스의 라이브 브라우저 확인은 카카오 키가 없어 보류 — 자동 테스트(`components/charger-map.test.tsx`, `app/page.test.tsx`)로 S1-1·S1-2·S1-4 로직은 검증됨. 카카오 키 발급 후 최종 체크포인트에서 함께 재확인한다
 
 ---
 
