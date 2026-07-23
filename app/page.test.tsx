@@ -12,15 +12,25 @@ class FakeLatLng {
 }
 
 type FakeMarker = { map: unknown }
+type FakeMap = { center: FakeLatLng; setCenter: (latLng: FakeLatLng) => void }
 
-function stubKakaoSdk(markerInstances: FakeMarker[]) {
+function stubKakaoSdk(
+  markerInstances: FakeMarker[],
+  mapInstances: FakeMap[] = []
+) {
   window.kakao = {
     maps: {
       load: (callback: () => void) => callback(),
       LatLng: FakeLatLng,
       Map: class {
-        constructor(_container: HTMLElement, _options: unknown) {}
-        setCenter() {}
+        center: FakeLatLng
+        constructor(_container: HTMLElement, options: { center: FakeLatLng }) {
+          this.center = options.center
+          mapInstances.push(this)
+        }
+        setCenter(latLng: FakeLatLng) {
+          this.center = latLng
+        }
       },
       Marker: class {
         map: unknown = null
@@ -159,5 +169,42 @@ describe("Page", () => {
 
     const activeMarkers = markers.filter((marker) => marker.map !== null)
     expect(activeMarkers).toHaveLength(1)
+  })
+
+  it("[S4-1][S4-2] shows a no-stations notice and moves the map center when the radius has no stations", async () => {
+    const markers: FakeMarker[] = []
+    const maps: FakeMap[] = []
+    stubKakaoSdk(markers, maps)
+
+    const location = {
+      lat: 38.0,
+      lng: 128.4,
+      addressName: "강원도 인제군 진동리",
+    }
+
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input)
+      if (url.includes("/api/geocode")) {
+        return { ok: true, json: async () => location } as Response
+      }
+      if (url.includes("/api/stations")) {
+        return { ok: true, json: async () => [] } as Response
+      }
+      throw new Error(`Unexpected fetch: ${url}`)
+    })
+
+    const user = userEvent.setup()
+    render(<Page />)
+    triggerSdkLoad()
+
+    await user.type(screen.getByLabelText("주소나 지역명"), "강원도 인제군 진동리")
+    await user.click(screen.getByRole("button", { name: "검색" }))
+
+    expect(
+      await screen.findByText("주변 5km에 충전소가 없습니다")
+    ).toBeInTheDocument()
+
+    expect(maps[0]?.center).toEqual(new FakeLatLng(38.0, 128.4))
+    expect(markers.filter((marker) => marker.map !== null)).toHaveLength(0)
   })
 })
